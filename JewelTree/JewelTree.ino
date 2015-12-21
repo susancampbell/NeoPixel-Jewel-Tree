@@ -1,15 +1,15 @@
 #include <Adafruit_NeoPixel.h>
 
 static uint32_t kOutputPIN = 2;
-static uint32_t kNumberOfPixels = 150;
+static uint32_t kNumberOfPixels = 7;
 
-static uint32_t kWipeDelay = 2;
+static uint32_t kWipeDelay = 5;
 
-static uint32_t kSlowCylonTime = 2000;
-static uint32_t kFastCylonTime = 1000;
+static uint32_t kSlowCylonTime = 1000;
+static uint32_t kFastCylonTime = 500;
 
-static int32_t kCylonWidth = 20;
-static int32_t kInvertedCylonWidth = 80;
+static int32_t kCylonWidth = 1;
+static int32_t kInvertedCylonWidth = 4;
 
 // Parameter 1 = number of pixels in strip
 // Parameter 2 = pin number (most are valid)
