@@ -16,7 +16,7 @@ static uint32_t kNumberOfPixels = 7;
     Serial.print(": ");                         \
     Serial.print(__PRETTY_FUNCTION__);          \
     Serial.print(' ');                          \
-    Serial.print(__FILE__);                     \
+    Serial.print("JewelTree");                  \
     Serial.print(':');                          \
     Serial.print(__LINE__);                     \
     Serial.print(' ');                          \
@@ -121,6 +121,7 @@ typedef enum Direction {
 typedef struct {
   Mode mode;
   Color targetColor;
+  Color secondColor;
   Speed speed;
   Direction direction;
   uint32_t dispatchTimeMillis;
@@ -159,6 +160,7 @@ void loopDelay(State state);
 void colorWipe(State state);
 void cylon(State state);
 void twinkle(State state);
+void spiral(State state);
 
 /**
  * Arduino Programming API
@@ -190,22 +192,25 @@ void loop() {
   state.durationMillis = random(2, 10) * 1000;
   dispatch(state);
 #else
-  for (uint32_t i = kTwinkle ; i < kMaxMode ; ++i) {
+
     state.mode = kWipe;
-    state.targetColor = (Color)random(kMaxColor);
+    state.targetColor = kRed;
+    state.secondColor = kWhite;
     state.speed = kSlow;
     state.direction = kForward;
     state.durationMillis = 1000;
-    dispatch(state);
+    state.dispatchTimeMillis = millis();
 
-    Serial.println(i);
+  //  Serial.println("testing spiral red/white");
+    spiral(state);
+    
+    state.targetColor = kWhite;
+    state.secondColor = kRed;
+    state.dispatchTimeMillis = millis();
 
-    state.mode = (Mode)i;
-    state.targetColor = kRed;
-    state.speed = kFast;
-    state.durationMillis = 10000;
-    dispatch(state);
-  }
+   // Serial.println("testing spiral white/red");
+    spiral(state);
+
 #endif
 }
 
@@ -344,6 +349,30 @@ void colorWipe(State state) {
     }
   }
 }
+/**
+ *  Spiral two colors through the three, hard since have the 7 lights, will play and see what works best
+ *  First pass is alternating colors and flipping - can also aminate adjusting strength
+ */
+void spiral(State state)
+{
+  while (continueLoop(state)) {
+    uint32_t targetColor = colorToValue(state.targetColor);
+    uint32_t secondColor = colorToValue(state.secondColor);
+   
+    state.loopStartTimeMillis = millis();
+    for (int16_t i = 0; i < strip.numPixels() ; ++i) {
+      if (i & 1) {
+        strip.setPixelColor(i, targetColor);
+      }
+      else {
+        strip.setPixelColor(i, secondColor);
+      }
+    }
+    strip.show();
+    loopDelay(state);
+  }
+}
+
 
 /**
  * Twinkle the lights, either with full on of the specific color, or in white.
@@ -437,8 +466,9 @@ uint32_t speedToValue(Speed speed) {
 
 boolean continueLoop(State state) {
   uint32_t currentDuration = millis() - state.dispatchTimeMillis;
-  DEBUG_PRINT(currentDuration);
-  return currentDuration < state.durationMillis;
+  boolean result = currentDuration < state.durationMillis;
+  DEBUG_PRINT(result ? "continue" : "exit");
+  return result;
 }
 
 void modeDelay(State state) {
